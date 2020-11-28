@@ -1,16 +1,16 @@
 class Node:
-    def __init__(self, character, frequency):
-        self.character = character
+    def __init__(self, byte, frequency):
+        self.byte = byte
         self.frequency = frequency
         self.leftChild = None
         self.rightChild = None
 
 
-def build_tree(text):
+def build_tree(input_bytes: bytes):
     frequencies = {}
 
-    for letter in text:
-        frequencies[letter] = frequencies.get(letter, 0) + 1
+    for byte in input_bytes:
+        frequencies[byte] = frequencies.get(byte, 0) + 1
 
     nodes = [Node(letter, frequencies[letter]) for letter in frequencies]
 
@@ -29,12 +29,12 @@ def build_tree(text):
     return nodes[0]
 
 
-def get_codes(node):
+def get_codes(node: Node) -> dict:
     codes = {}
 
-    def get_next_code(node, prefix=''):
-        if node.character is not None:
-            codes[node.character] = prefix
+    def get_next_code(node: Node, prefix=''):
+        if node.byte is not None:
+            codes[node.byte] = prefix
         else:
             get_next_code(node.leftChild, prefix + '0')
             get_next_code(node.rightChild, prefix + '1')
@@ -45,14 +45,14 @@ def get_codes(node):
 
 
 if __name__ == '__main__':
-    text = "huffman was een slimme man"
+    input_bytes = bytes("huffman was een slimme man", 'utf-8')
 
-    tree = build_tree(text)
+    tree = build_tree(input_bytes)
     codes = get_codes(tree)
 
-    result = "".join([codes[letter] for letter in text])
+    result = "".join([codes[letter] for letter in input_bytes])
 
-    print('input:', text)
+    print('input:', input_bytes)
     print('codes:', codes)
     print('result:', result)
-    print('verschil in bits (zonder tree):', len(text) * 8 - len(result))
+    print('verschil in bits (zonder tree):', len(input_bytes) * 8 - len(result))
