@@ -16,7 +16,7 @@ The compressed Huffman files are structured as follows (format is {name|size of 
 {length_of_code_length|8} -> The length of the value with the length of the code
 for every code:
   {byte|8} -> 
-  {length_of_code|length_of_code_length bits}
+  {length_of_code|length_of_code_length}
   {code|length_of_code} -> The byte,
 {length_of_the_filler_bits|3} -> The amount of bits that are used to fill the last byte and shouldn't be read when decompressing
 {compressed_data|unknown} -> The actual compressed data
