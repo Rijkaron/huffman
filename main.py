@@ -61,25 +61,26 @@ def bin_string_to_bytearray(binary_string: str) -> bytearray:
 def compress_file(input_filename: str, output_filename: str):
     with open(input_filename, 'rb') as input_file:
         input_bytes = bytearray(input_file.read())
-
-        tree = build_tree(input_bytes)
-        codes = get_codes(tree)
-
-        output = "".join([codes[byte] for byte in input_bytes])
-
-        max_code_length_length = len(bin(max(map(lambda code: len(code), codes.values())))) - 2
-
         output_binary_string = ''
-        output_binary_string += dec_to_bin(len(codes), 8)
-        output_binary_string += dec_to_bin(max_code_length_length - 1, 8)
 
-        for i, (byte, code) in enumerate(codes.items()):
-            output_binary_string += dec_to_bin(byte, 8)
-            output_binary_string += dec_to_bin(len(code), max_code_length_length)
-            output_binary_string += code
+        if len(input_bytes) > 0:
+            tree = build_tree(input_bytes)
+            codes = get_codes(tree)
 
-        output_binary_string += dec_to_bin((len(output_binary_string) + len(output) + 3) % 8, 3)
-        output_binary_string += output
+            output = "".join([codes[byte] for byte in input_bytes])
+
+            max_code_length_length = len(bin(max(map(lambda code: len(code), codes.values())))) - 2
+
+            output_binary_string += dec_to_bin(len(codes), 8)
+            output_binary_string += dec_to_bin(max_code_length_length - 1, 8)
+
+            for i, (byte, code) in enumerate(codes.items()):
+                output_binary_string += dec_to_bin(byte, 8)
+                output_binary_string += dec_to_bin(len(code), max_code_length_length)
+                output_binary_string += code
+
+            output_binary_string += dec_to_bin((len(output_binary_string) + len(output) + 3) % 8, 3)
+            output_binary_string += output
 
         with open(output_filename, 'wb+') as output_file:
             output_file.write(bin_string_to_bytearray(output_binary_string))
@@ -88,31 +89,33 @@ def compress_file(input_filename: str, output_filename: str):
 def decompress_file(input_filename: str, output_filename: str):
     with open(input_filename, 'rb') as input_file:
         input_bytes = "".join([dec_to_bin(byte, 8) for byte in bytearray(input_file.read())])
+        output_binary_string = ''
 
-        amount_of_codes = int(input_bytes[0:8], 2)
-        code_length_length = int(input_bytes[8:16], 2) + 1
-        input_bytes = input_bytes[16:]
+        if len(input_bytes) > 0:
+            amount_of_codes = int(input_bytes[0:8], 2)
+            code_length_length = int(input_bytes[8:16], 2) + 1
+            input_bytes = input_bytes[16:]
 
-        codes = {}
-        for i in range(amount_of_codes):
-            code_length = int(input_bytes[8:8 + code_length_length], 2)
-            code_offset = 8 + code_length_length
-            codes[input_bytes[code_offset:code_offset + code_length]] = input_bytes[0:8]
-            input_bytes = input_bytes[code_offset + code_length:]
+            codes = {}
+            for i in range(amount_of_codes):
+                code_length = int(input_bytes[8:8 + code_length_length], 2)
+                code_offset = 8 + code_length_length
+                codes[input_bytes[code_offset:code_offset + code_length]] = input_bytes[0:8]
+                input_bytes = input_bytes[code_offset + code_length:]
 
-        filler_bits_length = int(input_bytes[:3], 2)
-        input_bytes = input_bytes[3:]
+            filler_bits_length = int(input_bytes[:3], 2)
+            input_bytes = input_bytes[3:]
 
-        output = ''
-        buffer = ''
-        for bit in [input_bytes[i] for i in range(len(input_bytes) - filler_bits_length)]:
-            buffer += bit
-            if buffer in codes:
-                output += codes[buffer]
-                buffer = ''
+            output_binary_string = ''
+            buffer = ''
+            for bit in [input_bytes[i] for i in range(len(input_bytes) - filler_bits_length)]:
+                buffer += bit
+                if buffer in codes:
+                    output_binary_string += codes[buffer]
+                    buffer = ''
 
         with open(output_filename, 'wb+') as output_file:
-            output_file.write(bin_string_to_bytearray(output))
+            output_file.write(bin_string_to_bytearray(output_binary_string))
 
 
 if __name__ == '__main__':
