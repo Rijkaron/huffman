@@ -1,12 +1,12 @@
 class Node:
-    def __init__(self, byte: int, frequency: int):
+    def __init__(self, byte: [int, None], frequency: int):
         self.byte = byte
         self.frequency = frequency
         self.leftChild = None
         self.rightChild = None
 
 
-def build_tree(input_bytes: bytearray):
+def build_tree(input_bytes: bytearray) -> Node:
     frequencies = {}
 
     for byte in input_bytes:
@@ -32,7 +32,7 @@ def build_tree(input_bytes: bytearray):
 def get_codes(node: Node) -> dict:
     codes = {}
 
-    def get_next_code(node: Node, prefix=''):
+    def get_next_code(node: Node, prefix: str = ''):
         if node.byte is not None:
             codes[node.byte] = prefix
         else:
@@ -49,7 +49,7 @@ def dec_to_bin(number: int, bits: int) -> str:
 
 
 def bin_string_to_bytearray(binary_string: str) -> bytearray:
-    binary_string += (8 - len(binary_string) % 8) * '0'
+    binary_string += ((8 - len(binary_string)) % 8) * '0'
 
     bytes_array = bytearray()
     for binary_byte in [binary_string[i:i + 8] for i in range(0, len(binary_string), 8)]:
@@ -58,7 +58,7 @@ def bin_string_to_bytearray(binary_string: str) -> bytearray:
     return bytes_array
 
 
-def compress(input_filename: str, output_filename: str):
+def compress_file(input_filename: str, output_filename: str):
     with open(input_filename, 'rb') as input_file:
         input_bytes = bytearray(input_file.read())
 
@@ -76,47 +76,43 @@ def compress(input_filename: str, output_filename: str):
             output_binary.append(dec_to_bin(len(code), max_code_length_length))
             output_binary.append(code)
 
-        output_binary.append(dec_to_bin((len("".join(output_binary)) + len(output)) % 8, 3))
+        output_binary.append(dec_to_bin((len("".join(output_binary)) + len(output) + 3) % 8, 3))
         output_binary.append(output)
 
-        with open(output_filename, 'wb') as output_file:
+        with open(output_filename, 'wb+') as output_file:
             output_file.write(bin_string_to_bytearray("".join(output_binary)))
 
 
-def decompress(input_filename: str, output_filename: str):
+def decompress_file(input_filename: str, output_filename: str):
     with open(input_filename, 'rb') as input_file:
         input_bytes = "".join([dec_to_bin(byte, 8) for byte in bytearray(input_file.read())])
 
         amount_of_codes = int(input_bytes[0:8], 2)
-        max_code_length_length = int(input_bytes[8:16], 2) - 1
+        code_length_length = int(input_bytes[8:16], 2) - 1
         input_bytes = input_bytes[16:]
 
         codes = {}
         for i in range(amount_of_codes):
-            code_length = int(input_bytes[8:8+max_code_length_length], 2)
-            code_offset = 8 + max_code_length_length
-            codes[input_bytes[code_offset:code_offset+code_length]] = input_bytes[0:8]
-            input_bytes = input_bytes[code_offset+code_length:]
+            code_length = int(input_bytes[8:8 + code_length_length], 2)
+            code_offset = 8 + code_length_length
+            codes[input_bytes[code_offset:code_offset + code_length]] = input_bytes[0:8]
+            input_bytes = input_bytes[code_offset + code_length:]
 
-        filler_bits_length = int(input_bytes[0:3], 2)
+        filler_bits_length = int(input_bytes[:3], 2)
         input_bytes = input_bytes[3:]
 
         output = ''
         buffer = ''
-        for bit in [input_bytes[i] for i in range(0, len(input_bytes) - filler_bits_length)]:
+        for bit in [input_bytes[i] for i in range(len(input_bytes) - filler_bits_length)]:
             buffer += bit
-            try:
+            if buffer in codes:
                 output += codes[buffer]
                 buffer = ''
-            except KeyError:
-                pass
 
-        print(output)
-
-        with open(output_filename, 'wb') as output_file:
+        with open(output_filename, 'wb+') as output_file:
             output_file.write(bin_string_to_bytearray(output))
 
 
 if __name__ == '__main__':
-    compress('lorem-ipsum', 'lorem-ipsum-compressed')
-    decompress('lorem-ipsum-compressed', 'lorem-ipsum-decompressed')
+    compress_file('lorem-ipsum', 'lorem-ipsum-compressed')
+    decompress_file('lorem-ipsum-compressed', 'lorem-ipsum-decompressed')
