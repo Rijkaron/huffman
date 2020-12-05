@@ -69,18 +69,20 @@ def compress_file(input_filename: str, output_filename: str):
 
         max_code_length_length = len(bin(max(map(lambda code: len(code), codes.values())))) - 2
 
-        output_binary = [dec_to_bin(len(codes), 8), dec_to_bin(max_code_length_length - 1, 8)]
+        output_binary_string = ''
+        output_binary_string += dec_to_bin(len(codes), 8)
+        output_binary_string += dec_to_bin(max_code_length_length - 1, 8)
 
         for i, (byte, code) in enumerate(codes.items()):
-            output_binary.append(dec_to_bin(byte, 8))
-            output_binary.append(dec_to_bin(len(code), max_code_length_length))
-            output_binary.append(code)
+            output_binary_string += dec_to_bin(byte, 8)
+            output_binary_string += dec_to_bin(len(code), max_code_length_length)
+            output_binary_string += code
 
-        output_binary.append(dec_to_bin((len("".join(output_binary)) + len(output) + 3) % 8, 3))
-        output_binary.append(output)
+        output_binary_string += dec_to_bin((len(output_binary_string) + len(output) + 3) % 8, 3)
+        output_binary_string += output
 
         with open(output_filename, 'wb+') as output_file:
-            output_file.write(bin_string_to_bytearray("".join(output_binary)))
+            output_file.write(bin_string_to_bytearray(output_binary_string))
 
 
 def decompress_file(input_filename: str, output_filename: str):
