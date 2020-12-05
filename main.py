@@ -69,7 +69,7 @@ def compress_file(input_filename: str, output_filename: str):
 
         max_code_length_length = len(bin(max(map(lambda code: len(code), codes.values())))) - 2
 
-        output_binary = [dec_to_bin(len(codes), 8), dec_to_bin(max_code_length_length + 1, 8)]
+        output_binary = [dec_to_bin(len(codes), 8), dec_to_bin(max_code_length_length - 1, 8)]
 
         for i, (byte, code) in enumerate(codes.items()):
             output_binary.append(dec_to_bin(byte, 8))
@@ -88,7 +88,7 @@ def decompress_file(input_filename: str, output_filename: str):
         input_bytes = "".join([dec_to_bin(byte, 8) for byte in bytearray(input_file.read())])
 
         amount_of_codes = int(input_bytes[0:8], 2)
-        code_length_length = int(input_bytes[8:16], 2) - 1
+        code_length_length = int(input_bytes[8:16], 2) + 1
         input_bytes = input_bytes[16:]
 
         codes = {}
